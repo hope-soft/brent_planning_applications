@@ -1,9 +1,10 @@
+require 'scraperwiki'
 require 'rubygems'
 require 'nokogiri'
 require 'open-uri'
 require 'date'
 
-#ScraperWiki.sqliteexecute('CREATE INDEX date_scraped ON swdata (date_scraped)')
+#ScraperWiki.sqliteexecute('CREATE INDEX date_scraped ON data (date_scraped)')
 #exit
 
 BASE_URL = 'https://forms.brent.gov.uk/servlet/ep.ext'
@@ -28,11 +29,11 @@ def search_for_new_applications(until_date=Date.today)
 end
 
 def update_stale_applications
-  current_applications = ScraperWiki.select("* from swdata WHERE date_received > '#{(Date.today-60).strftime('%F')}' ORDER BY date_scraped LIMIT 200")
+  current_applications = ScraperWiki.select("* from data WHERE date_received > '#{(Date.today-60).strftime('%F')}' ORDER BY date_scraped LIMIT 200")
   current_applications.each do |app|
     populate_application_details(app)
   end
-  unpopulated_applications = ScraperWiki.select("* from swdata WHERE date_scraped IS NULL limit 600")
+  unpopulated_applications = ScraperWiki.select("* from data WHERE date_scraped IS NULL limit 600")
   unpopulated_applications.each do |app|
     populate_application_details(app)
   end
@@ -72,7 +73,7 @@ def format_date(date)
 end
 
 def make_iso_dates(field)
-  current_applications = ScraperWiki.select("uid, " + field + " from swdata WHERE " + field + " like '%/%/%' ORDER BY date_scraped LIMIT 500")
+  current_applications = ScraperWiki.select("uid, " + field + " from data WHERE " + field + " like '%/%/%' ORDER BY date_scraped LIMIT 500")
   current_applications.each do |app|
     app[field] = app[field].split('/').reverse.join('-')
     #ScraperWiki.execute("update swdata SET " + field + " = '" + app[field] + "' WHERE uid = '" + app['uid'] + "'")
